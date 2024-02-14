@@ -214,12 +214,13 @@ class SecureSharedPref extends SuperSecureSharedPref {
   /// Method to get StringList from local storage
   /// [key] -> Key which you have provided while setting
   /// [isEncrypted] -> Flag which you have provided while encrypting
-  Future<List<String>> getStringList(String key, {bool isEncrypted = false}) async {
+  Future<List<String>> getStringList(String key,
+      {bool isEncrypted = false}) async {
     _assetFunction(isEncrypted);
     if (isEncrypted) {
       if (Platform.isAndroid) {
         String? result = await _secureStorage?.read(key: key);
-        return _getStringListFromString(result!);
+        return result != null ? _getStringListFromString(result) : [];
       } else if (Platform.isIOS) {
         if (await _isMasterKeyAvailable()) {
           var keys = await _getEncrypterKeys();
@@ -252,7 +253,8 @@ class SecureSharedPref extends SuperSecureSharedPref {
   /// [key] -> Key for key-value pair
   /// [isEncrypted] -> Flag whether to encrypt or not
   /// [val] -> Value for key-value pair
-  Future<void> putString(String key, String val, {bool isEncrypted = false}) async {
+  Future<void> putString(String key, String val,
+      {bool isEncrypted = false}) async {
     _assetFunction(isEncrypted);
     if (isEncrypted) {
       if (Platform.isAndroid) {
@@ -280,7 +282,7 @@ class SecureSharedPref extends SuperSecureSharedPref {
           await _saveMasterKeyToKeychain(masterKey);
           await _generateAndSaveKeyAndValueSubKeys(
               await _getMasterKeyFromKeyChain());
-          putString(key, val, isEncrypted:isEncrypted);
+          putString(key, val, isEncrypted: isEncrypted);
           //throw Exception("Failed to save data something is not correct, please report issue on github");
         }
       } else {
@@ -327,7 +329,7 @@ class SecureSharedPref extends SuperSecureSharedPref {
           await _saveMasterKeyToKeychain(masterKey);
           await _generateAndSaveKeyAndValueSubKeys(
               await _getMasterKeyFromKeyChain());
-          putInt(key, val, isEncrypted:isEncrypted);
+          putInt(key, val, isEncrypted: isEncrypted);
         }
       } else {
         throw PlatformException(
@@ -372,7 +374,7 @@ class SecureSharedPref extends SuperSecureSharedPref {
           await _saveMasterKeyToKeychain(masterKey);
           await _generateAndSaveKeyAndValueSubKeys(
               await _getMasterKeyFromKeyChain());
-          putBool(key, val, isEncrypted:isEncrypted);
+          putBool(key, val, isEncrypted: isEncrypted);
         }
       } else {
         throw PlatformException(
@@ -389,14 +391,15 @@ class SecureSharedPref extends SuperSecureSharedPref {
   /// [isEncrypted] -> Flag whether to encrypt or not
   /// [val] -> Value for key-value pair
   Future<void> putMap(String key, Map val, {bool isEncrypted = false}) async {
-    await putString(key, jsonEncode(val),isEncrypted: isEncrypted);
+    await putString(key, jsonEncode(val), isEncrypted: isEncrypted);
   }
 
   /// Method to set double in local storage
   /// [key] -> Key for key-value pair
   /// [isEncrypted] -> Flag whether to encrypt or not
   /// [val] -> Value for key-value pair
-  Future<void> putDouble(String key, double val, {bool isEncrypted = false}) async {
+  Future<void> putDouble(String key, double val,
+      {bool isEncrypted = false}) async {
     _assetFunction(isEncrypted);
     if (isEncrypted) {
       if (Platform.isAndroid) {
@@ -425,7 +428,7 @@ class SecureSharedPref extends SuperSecureSharedPref {
           await _saveMasterKeyToKeychain(masterKey);
           await _generateAndSaveKeyAndValueSubKeys(
               await _getMasterKeyFromKeyChain());
-          putDouble(key, val, isEncrypted:isEncrypted);
+          putDouble(key, val, isEncrypted: isEncrypted);
         }
       } else {
         throw PlatformException(
@@ -441,8 +444,8 @@ class SecureSharedPref extends SuperSecureSharedPref {
   /// [key] -> Key for key-value pair
   /// [isEncrypted] -> Flag whether to encrypt or not
   /// [val] -> Value for key-value pair
-  Future<void> putStringList(
-      String key, List<String> val, {bool isEncrypted = false}) async {
+  Future<void> putStringList(String key, List<String> val,
+      {bool isEncrypted = false}) async {
     _assetFunction(isEncrypted);
     if (isEncrypted) {
       if (Platform.isAndroid) {
@@ -471,7 +474,7 @@ class SecureSharedPref extends SuperSecureSharedPref {
           await _saveMasterKeyToKeychain(masterKey);
           await _generateAndSaveKeyAndValueSubKeys(
               await _getMasterKeyFromKeyChain());
-          putStringList(key, val, isEncrypted:isEncrypted);
+          putStringList(key, val, isEncrypted: isEncrypted);
         }
       } else {
         throw PlatformException(
@@ -491,10 +494,14 @@ class SecureSharedPref extends SuperSecureSharedPref {
 
   Future<List<Map<String, List<int>>>> _getEncrypterKeys() async {
     List<Map<String, List<int>>> list = List.empty(growable: true);
-    String keyEncrypterSubKey =
-        await getString(_packageInfo.packageName + keyCode, isEncrypted:false) ?? "";
-    String valueEncrypterSubKey =
-        await getString(_packageInfo.packageName + valueCode, isEncrypted:false) ?? "";
+    String keyEncrypterSubKey = await getString(
+            _packageInfo.packageName + keyCode,
+            isEncrypted: false) ??
+        "";
+    String valueEncrypterSubKey = await getString(
+            _packageInfo.packageName + valueCode,
+            isEncrypted: false) ??
+        "";
     final intList = _getIntListFromString(keyEncrypterSubKey);
     Map<String, List<int>> keyEncrypterKeysList = {};
     keyEncrypterKeysList.putIfAbsent(
